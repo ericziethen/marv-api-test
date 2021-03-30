@@ -6,6 +6,15 @@ import time
 
 import marvel
 
+
+def find_file_with_prefix(prefix, search_dir):
+    for file_name in os.listdir(search_dir):
+        if file_name.lower().startswith(prefix.lower()) and file_name.lower().endswith('.json'):
+            file_path = os.path.join(search_dir, file_name)
+            return file_path
+    return None
+
+
 def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
                  base_file_name, sub_section_func_dict=None, get_id=None):
     logging.info(F'Processing "{base_file_name}"')
@@ -13,20 +22,29 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
 
     while True:
         logging.info(F'Processing Offset "{next_offset}"')
-        if get_id:
-            results = caller_func(get_id, limit=result_limit, offset=next_offset)
+        results = None
+        
+        guess_file_name = F'{base_file_name}_{next_offset + 1}_'
+        found_file_path = find_file_with_prefix(guess_file_name, target_dir)
+        if found_file_path:
+            logging.info(F'Found file to skip request "{found_file_path}"')
+            with open(found_file_path, 'r', encoding='utf-8') as file_ptr:
+                results = json.load(file_ptr)
         else:
-            results = caller_func(limit=result_limit, offset=next_offset)
+            logging.info('Sleep 5 Seconds before request')
+            time.sleep(5)
+            if get_id:
+                results = caller_func(get_id, limit=result_limit, offset=next_offset)
+            else:
+                results = caller_func(limit=result_limit, offset=next_offset)
 
         if results and results['data']['count'] > 0:
             # Store the Main Data
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
 
-            file_name = F'{base_file_name}_{next_offset}_{next_offset + result_limit}.json'
             result_start = results['data']['offset'] + 1
             result_end = results['data']['offset'] + results['data']['count']
-
             file_name = F'''{base_file_name}_{result_start}_{result_end}.json'''
 
             file_path = os.path.join(target_dir, file_name)
@@ -54,13 +72,14 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
                                 sub_section_func_dict=None,
                                 get_id=result_id,
                             )
+            if results['data']['count'] < result_limit:
+                logging.info(F'''>>> FINISHED, JSON count "{results['data']['count']} less than max "{result_limit}"''')
+                break
         else:
             logging.info('>>> FINISHED, No More Results')
             break
 
         next_offset += result_limit
-        logging.info('Sleep 5 Seconds')
-        time.sleep(5)
 
 
 def get_marvel_data():
@@ -112,8 +131,29 @@ def get_marvel_data():
         start_offset=0,
         target_dir=R'DATA_TEST\COMICS',
         base_file_name='COMICS',
+        sub_section_func_dict=None
+    )
+
+    comics = m.comics
+    get_till_end(
+        caller_func=comics.all,
+        result_limit=max_results,
+        start_offset=0,
+        target_dir=R'DATA_TEST\COMICS',
+        base_file_name='COMICS',
         sub_section_func_dict={
             'CHARACTERS': comics.characters,
+        }
+    )
+
+    comics = m.comics
+    get_till_end(
+        caller_func=comics.all,
+        result_limit=max_results,
+        start_offset=0,
+        target_dir=R'DATA_TEST\COMICS',
+        base_file_name='COMICS',
+        sub_section_func_dict={
             'CREATORS': comics.creators,
         }
     )
