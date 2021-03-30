@@ -5,15 +5,18 @@ import logging
 import os
 import time
 import urllib
+import urllib3
 
 import marvel
+import requests
 
 
 def find_file_with_prefix(prefix, search_dir):
-    for file_name in os.listdir(search_dir):
-        if file_name.lower().startswith(prefix.lower()) and file_name.lower().endswith('.json'):
-            file_path = os.path.join(search_dir, file_name)
-            return file_path
+    if os.path.exists(search_dir):
+        for file_name in os.listdir(search_dir):
+            if file_name.lower().startswith(prefix.lower()) and file_name.lower().endswith('.json'):
+                file_path = os.path.join(search_dir, file_name)
+                return file_path
     return None
 
 
@@ -74,7 +77,8 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
                                 sub_section_func_dict=None,
                                 get_id=result_id,
                             )
-            if results['data']['count'] < result_limit:
+            if (results['data']['count'] < result_limit) or\
+               (results['data']['total'] <= results['data']['count']):
                 logging.info(F'''>>> FINISHED, JSON count "{results['data']['count']} less than max "{result_limit}"''')
                 break
         else:
@@ -183,6 +187,10 @@ def main():
             logging.error(F'URLError: "{error.code}" - "{error}"')
         except http.client.RemoteDisconnected as error:
             logging.error(F'RemoteDisconnected: "{error.code}" - "{error}"')
+        except urllib3.exceptions.ProtocolError as error:
+            logging.error(F'ProtocolError: "{error.code}" - "{error}"')
+        except requests.exceptions.ConnectionError as error:
+            logging.error(F'ConnectionError: "{error.code}" - "{error}"')
 
         tries += 1
 
