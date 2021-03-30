@@ -53,8 +53,9 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             file_name = F'''{base_file_name}_{result_start}_{result_end}.json'''
 
             file_path = os.path.join(target_dir, file_name)
-            with open(file_path, 'w', encoding='utf-8') as file_ptr:
-                json.dump(results, file_ptr, indent=4, sort_keys=False, ensure_ascii=False)
+            if found_file_path is None:
+                with open(file_path, 'w', encoding='utf-8') as file_ptr:
+                    json.dump(results, file_ptr, indent=4, sort_keys=False, ensure_ascii=False)
 
             # Check for Subsections we need
             if sub_section_func_dict:
