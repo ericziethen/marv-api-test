@@ -175,6 +175,7 @@ def main():
         logging.info(F'Try "{tries}"')
         try:
             get_marvel_data()
+            break
         except urllib.error.HTTPError as error:
             logging.error(F'HTTPError: "{error.code}" - "{error}"')
         except urllib.error.URLError as error:
