@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+import urllib
 
 import marvel
 
@@ -166,7 +167,23 @@ def main():
                         handlers=[logging.FileHandler("log.log"),
                                   logging.StreamHandler()])
 
-    get_marvel_data()
+    # Sometimes requests throws an exception, so we can keep tryng a few times
+    max_retries = 20
+    tries = 1
+
+    while tries <= max_retries:
+        logging.info(F'Try "{tries}"')
+        try:
+            get_marvel_data()
+        except urllib.error.HTTPError as error:
+            logging.error(F'HTTPError: "{error.code}" - "{error}"')
+        except urllib.error.URLError as error:
+            logging.error(F'URLError: "{error.code}" - "{error}"')
+
+        tries += 1
+
+    logging.info(F'Finnished after "{tries}" tries')
+
 
 if __name__ == '__main__':
     PUBLIC_KEY = os.getenv('PUBLIC_KEY')
