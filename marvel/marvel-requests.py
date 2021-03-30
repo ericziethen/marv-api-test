@@ -8,11 +8,11 @@ import marvel
 
 def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
                  base_file_name, sub_section_func_dict=None, get_id=None):
-    print(F'Processing "{base_file_name}"')
+    logging.info(F'Processing "{base_file_name}"')
     next_offset=start_offset
 
     while True:
-        print(F'Processing Offset "{next_offset}"')
+        logging.info(F'Processing Offset "{next_offset}"')
         if get_id:
             results = caller_func(get_id, limit=result_limit, offset=next_offset)
         else:
@@ -35,15 +35,15 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
 
             # Check for Subsections we need
             if sub_section_func_dict:
-                print('Check Subsections', sub_section_func_dict)
+                logging.info('Check Subsections', sub_section_func_dict)
                 for result in results['data']['results']:
                     result_id = result['id']
-                    #print('check_result id', result_id)
+                    #logging.info('check_result id', result_id)
                     for sub_name, sub_func in sub_section_func_dict.items():
                         key = sub_name.lower().strip()
-                        #print(F'Sub Key Name: "{key}", in result: "{key in result}"')
+                        #logging.info(F'Sub Key Name: "{key}", in result: "{key in result}"')
                         if key in result and (result[key]['returned'] < result[key]['available']):
-                            print(F'  >> Need to Process Sub Section "{sub_name}" for id "{result_id}"')
+                            logging.info(F'  >> Need to Process Sub Section "{sub_name}" for id "{result_id}"')
 
                             get_till_end(
                                 caller_func=sub_func,
@@ -55,11 +55,11 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
                                 get_id=result_id,
                             )
         else:
-            print('>>> FINISHED, No More Results')
+            logging.info('>>> FINISHED, No More Results')
             break
 
         next_offset += result_limit
-        print('Sleep 5 Seconds')
+        logging.info('Sleep 5 Seconds')
         time.sleep(5)
 
 
@@ -119,20 +119,13 @@ def get_marvel_data():
     )
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 def main():
-    logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.DEBUG)
+    #logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(message)s',
+                        handlers=[logging.FileHandler("log.log"),
+                                  logging.StreamHandler()])
+
     get_marvel_data()
 
 if __name__ == '__main__':
