@@ -1,4 +1,5 @@
 
+import http
 import json
 import logging
 import os
@@ -180,6 +181,8 @@ def main():
             logging.error(F'HTTPError: "{error.code}" - "{error}"')
         except urllib.error.URLError as error:
             logging.error(F'URLError: "{error.code}" - "{error}"')
+        except http.client.RemoteDisconnected as error:
+            logging.error(F'RemoteDisconnected: "{error.code}" - "{error}"')
 
         tries += 1
 
