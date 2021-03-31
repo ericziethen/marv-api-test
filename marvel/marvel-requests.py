@@ -39,9 +39,9 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             logging.info('Sleep 5 Seconds before request')
             time.sleep(5)
             if get_id:
-                results = caller_func(get_id, limit=result_limit, offset=next_offset)
+                results = caller_func(get_id, limit=result_limit, offset=next_offset, orderBy='modified')
             else:
-                results = caller_func(limit=result_limit, offset=next_offset)
+                results = caller_func(limit=result_limit, offset=next_offset, orderBy='modified')
 
         if results and results['data']['count'] > 0:
             # Store the Main Data
