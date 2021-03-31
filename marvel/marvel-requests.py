@@ -10,6 +10,29 @@ import urllib3
 import marvel
 import requests
 
+NAME_ORDER_MAPPING = {
+    'events': 'name',
+    'creators': 'lastName,firstName',
+    'comics': 'title',
+    'characters': 'name',
+}
+
+
+def get_order_type_fron_caller_func(func_name):
+    '''
+        Functions either have a single entity
+            -> characters.all
+        Or multiple entities (we want the last one)
+            -> events.creators
+    '''
+
+    name_list = func_name.split('.')
+    for name in name_list[::-1]:
+        if name.lower() in NAME_ORDER_MAPPING:
+            return NAME_ORDER_MAPPING[name.lower()]
+
+    raise ValueError(F'Cannot find ordertype for {func_name}')
+
 
 def find_file_with_prefix(prefix, search_dir):
     if os.path.exists(search_dir):
@@ -21,7 +44,7 @@ def find_file_with_prefix(prefix, search_dir):
 
 
 def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
-                 base_file_name, sub_section_func_dict=None, get_id=None):
+                 base_file_name, order_type, sub_section_func_dict=None, get_id=None):
     logging.info(F'Processing "{base_file_name}"')
     next_offset=start_offset
 
@@ -30,6 +53,7 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
         results = None
         
         guess_file_name = F'{base_file_name}_{next_offset + 1}_'
+
         found_file_path = find_file_with_prefix(guess_file_name, target_dir)
         if found_file_path:
             logging.info(F'Found file to skip request "{found_file_path}"')
@@ -38,10 +62,12 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
         else:
             logging.info('Sleep 5 Seconds before request')
             time.sleep(5)
+            if not order_type:
+                order_type = get_order_type_fron_caller_func(caller_func.__name__)
             if get_id:
-                results = caller_func(get_id, limit=result_limit, offset=next_offset, orderBy='modified')
+                results = caller_func(get_id, limit=result_limit, offset=next_offset, orderBy=order_type)
             else:
-                results = caller_func(limit=result_limit, offset=next_offset, orderBy='modified')
+                results = caller_func(limit=result_limit, offset=next_offset, orderBy=order_type)
 
         if results and results['data']['count'] > 0:
             # Store the Main Data
@@ -75,6 +101,7 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
                                 start_offset=0,
                                 target_dir=os.path.join(target_dir, sub_name),
                                 base_file_name=F'{base_file_name}__{result_id}__{sub_name}',
+                                order_type=None,
                                 sub_section_func_dict=None,
                                 get_id=result_id,
                             )
@@ -87,7 +114,6 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             break
 
         next_offset += result_limit
-
 
 def get_marvel_data():
     max_results = 100
@@ -102,6 +128,7 @@ def get_marvel_data():
         start_offset=0,
         target_dir=R'DATA_TEST\CHARACTERS',
         base_file_name='CHARACTERS',
+        order_type='name',
         sub_section_func_dict=None
     )
 
@@ -113,6 +140,7 @@ def get_marvel_data():
         start_offset=0,
         target_dir=R'DATA_TEST\EVENTS',
         base_file_name='EVENTS',
+        order_type='name',
         sub_section_func_dict={
             'CHARACTERS': events.characters,
             'CREATORS': events.creators,
@@ -127,6 +155,7 @@ def get_marvel_data():
         start_offset=0,
         target_dir=R'DATA_TEST\CREATORS',
         base_file_name='CREATORS',
+        order_type='lastName,firstName',
         sub_section_func_dict=None
     )
 
@@ -138,6 +167,7 @@ def get_marvel_data():
         start_offset=0,
         target_dir=R'DATA_TEST\COMICS',
         base_file_name='COMICS',
+        order_type='title',
         sub_section_func_dict=None
     )
 
@@ -148,6 +178,7 @@ def get_marvel_data():
         start_offset=0,
         target_dir=R'DATA_TEST\COMICS',
         base_file_name='COMICS',
+        order_type='title',
         sub_section_func_dict={
             'CHARACTERS': comics.characters,
         }
@@ -160,6 +191,7 @@ def get_marvel_data():
         start_offset=0,
         target_dir=R'DATA_TEST\COMICS',
         base_file_name='COMICS',
+        order_type='title',
         sub_section_func_dict={
             'CREATORS': comics.creators,
         }
