@@ -53,8 +53,8 @@ jobs:
 
       - name: Get Data
         run: |
-          echo 'python .\scripts\get_marvel_data.py --public_key ***** --private_key ***** --dest_dir "${DATA_DIR}" --log_file_path "${DATA_DIR}/data.log"'
-          python .\scripts\get_marvel_data.py --public_key "${{ secrets.MARVEL_API_PUBLIC_KEY }}" --private_key "${{ secrets.MARVEL_API_PRIVATE_KEY }}" --dest_dir "${DATA_DIR}" --log_file_path "${DATA_DIR}/data.log"
+          echo 'python ./scripts/get_marvel_data.py --public_key ***** --private_key ***** --dest_dir "${DATA_DIR}" --log_file_path "${DATA_DIR}/data.log"'
+          python ./scripts/get_marvel_data.py --public_key "${{ secrets.MARVEL_API_PUBLIC_KEY }}" --private_key "${{ secrets.MARVEL_API_PRIVATE_KEY }}" --dest_dir "${DATA_DIR}" --log_file_path "${DATA_DIR}/data.log"
 
       ### TODO - Use Secret to SPecify Password
       - name: Zip html artifacts
