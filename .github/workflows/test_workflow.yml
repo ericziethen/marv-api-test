@@ -57,7 +57,7 @@ jobs:
           python ./scripts/get_marvel_data.py --public_key "${{ secrets.MARVEL_API_PUBLIC_KEY }}" --private_key "${{ secrets.MARVEL_API_PRIVATE_KEY }}" --dest_dir "${DATA_DIR}" --log_file_path "${DATA_DIR}/data.log"
 
       ### TODO - Use Secret to SPecify Password
-      - name: Zip html artifacts
+      - name: Zip artifacts
         run: |
           pushd "${DATA_DIR}"
           zip -r "${WORK_DIR}/tmp.zip" .
@@ -78,8 +78,8 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload HTML Artifacts
-        id: upload-release-asset-html
+      - name: Upload Artifacts
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
