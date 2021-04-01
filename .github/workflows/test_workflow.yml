@@ -1,0 +1,93 @@
+name: POC Get Data
+on: 
+  workflow_dispatch:
+    # Text Field Inputs - Maybe use in the future for Start Date ...
+    #  access by ${{ github.event.inputs.version }}
+
+    # inputs:
+    #   version:
+    #     description: Bump Version
+    #     default: v1.0.0
+    #     required: true
+jobs:
+  scrape:
+    nake: Get the Data
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d_%H-%M-%S')"
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Setup Python Packages
+        run: |
+          pip --version
+          python --version --version
+          pip list
+          python -m pip install --upgrade pip pipenv
+          pip install -r requirements.txt
+          pip list
+
+      - name: Setup Environment
+        # e.g. create work dirst, store in env variables ... https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions
+        run: |
+          echo "WORK_DIR=${{ github.workspace }}" >> $GITHUB_ENV
+          echo "DATA_DIR=${{ github.workspace }}/data" >> $GITHUB_ENV
+
+      - name: Setup Dirs
+        run: |
+          echo "DATA_DIR: '${DATA_DIR}'"
+
+          echo "Command: 'mkdir -p ${DATA_DIR}'"
+          mkdir -p ${DATA_DIR}
+
+          echo "Command: 'ls -altR ${DATA_DIR}'"
+          ls -altR ${DATA_DIR}
+
+
+
+
+
+      - name: Create Test File
+        run: |
+          echo "Hello World" > "${DATA_DIR}/test_file.txt"
+
+
+
+      ### TODO - Use Secret to SPecify Password
+      - name: Zip html artifacts
+        run: |
+          zip -r "${WORK_DIR}/tmp.zip" "${DATA_DIR}"
+          zip --password Test_Password123 -r "${WORK_DIR}/data.zip" "${WORK_DIR}/tmp.zip"
+
+
+
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.date.outputs.date }}
+          release_name: Release ${{ steps.date.outputs.date }}
+          draft: false
+          prerelease: false
+
+      - name: Upload HTML Artifacts
+        id: upload-release-asset-html
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./data.zip
+          asset_name: data.zip
+          asset_content_type: application/zip
