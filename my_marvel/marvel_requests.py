@@ -113,8 +113,7 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             logging.info('>>> FINISHED, No More Results')
             break
 
-        #next_offset += result_limit
-        next_offset += 50000
+        next_offset += result_limit
 
 def get_marvel_data(*, public_key, private_key, target_dir):
     max_results = 100
