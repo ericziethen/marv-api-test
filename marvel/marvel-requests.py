@@ -214,16 +214,17 @@ def main():
         try:
             get_marvel_data()
             break
-        except urllib.error.HTTPError as error:
-            logging.error(F'HTTPError: "{error.code}" - "{error}"')
-        except urllib.error.URLError as error:
-            logging.error(F'URLError: "{error.code}" - "{error}"')
-        except http.client.RemoteDisconnected as error:
-            logging.error(F'RemoteDisconnected: "{error.code}" - "{error}"')
-        except urllib3.exceptions.ProtocolError as error:
-            logging.error(F'ProtocolError: "{error.code}" - "{error}"')
-        except requests.exceptions.ConnectionError as error:
-            logging.error(F'ConnectionError: "{error.code}" - "{error}"')
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.ProxyError,
+                requests.exceptions.SSLError,
+                requests.exceptions.Timeout,
+                requests.RequestException,
+                urllib.error.HTTPError,
+                urllib.error.URLError,
+                urllib3.exceptions.ProtocolError,
+                http.client.RemoteDisconnected
+                ) as error:
+            logging.error(F'EXCEPTION: {type(error).__name__} "{error.code}" - "{error}"')
 
         tries += 1
 
