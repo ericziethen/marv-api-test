@@ -223,7 +223,7 @@ def get_data(*, log_path, public_key, private_key, target_dir):
                 urllib3.exceptions.ProtocolError,
                 http.client.RemoteDisconnected
                 ) as error:
-            logging.error(F'EXCEPTION: {type(error).__name__} "{error.code}" - "{error}"')
+            logging.error(F'EXCEPTION: {type(error).__name__} - "{error}"')
 
         tries += 1
 
