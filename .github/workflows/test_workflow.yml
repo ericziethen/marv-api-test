@@ -11,7 +11,7 @@ on:
     #     required: true
 jobs:
   scrape:
-    nake: Get the Data
+    name: Get the Data
     runs-on: "ubuntu-latest"
 
     steps:
