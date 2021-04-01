@@ -113,12 +113,13 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             logging.info('>>> FINISHED, No More Results')
             break
 
-        next_offset += result_limit
+        #next_offset += result_limit
+        next_offset += 50000
 
-def get_marvel_data():
+def get_marvel_data(*, public_key, private_key, target_dir):
     max_results = 100
 
-    m = marvel.Marvel(PUBLIC_KEY, PRIVATE_KEY)
+    m = marvel.Marvel(public_key, private_key)
 
     # Get Characters
     characters = m.characters
@@ -126,7 +127,7 @@ def get_marvel_data():
         caller_func=characters.all,
         result_limit=max_results,
         start_offset=0,
-        target_dir=R'DATA_TEST\CHARACTERS',
+        target_dir=os.path.join(target_dir, 'CHARACTERS'),
         base_file_name='CHARACTERS',
         order_type='name',
         sub_section_func_dict=None
@@ -138,7 +139,7 @@ def get_marvel_data():
         caller_func=events.all,
         result_limit=max_results,
         start_offset=0,
-        target_dir=R'DATA_TEST\EVENTS',
+        target_dir=os.path.join(target_dir, 'EVENTS'),
         base_file_name='EVENTS',
         order_type='name',
         sub_section_func_dict={
@@ -153,7 +154,7 @@ def get_marvel_data():
         caller_func=creators.all,
         result_limit=max_results,
         start_offset=0,
-        target_dir=R'DATA_TEST\CREATORS',
+        target_dir=os.path.join(target_dir, 'CREATORS'),
         base_file_name='CREATORS',
         order_type='lastName,firstName',
         sub_section_func_dict=None
@@ -165,7 +166,7 @@ def get_marvel_data():
         caller_func=comics.all,
         result_limit=max_results,
         start_offset=0,
-        target_dir=R'DATA_TEST\COMICS',
+        target_dir=os.path.join(target_dir, 'COMICS'),
         base_file_name='COMICS',
         order_type='title',
         sub_section_func_dict=None
@@ -176,7 +177,7 @@ def get_marvel_data():
         caller_func=comics.all,
         result_limit=max_results,
         start_offset=0,
-        target_dir=R'DATA_TEST\COMICS',
+        target_dir=os.path.join(target_dir, 'COMICS'),
         base_file_name='COMICS',
         order_type='title',
         sub_section_func_dict={
@@ -189,7 +190,7 @@ def get_marvel_data():
         caller_func=comics.all,
         result_limit=max_results,
         start_offset=0,
-        target_dir=R'DATA_TEST\COMICS',
+        target_dir=os.path.join(target_dir, 'COMICS'),
         base_file_name='COMICS',
         order_type='title',
         sub_section_func_dict={
@@ -198,11 +199,10 @@ def get_marvel_data():
     )
 
 
-def main():
-    #logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.DEBUG)
+def get_data(*, log_path, public_key, private_key, target_dir):
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(message)s',
-                        handlers=[logging.FileHandler("log.log"),
+                        handlers=[logging.FileHandler(log_path),
                                   logging.StreamHandler()])
 
     # Sometimes requests throws an exception, so we can keep tryng a few times
@@ -212,7 +212,7 @@ def main():
     while tries <= max_retries:
         logging.info(F'Try "{tries}"')
         try:
-            get_marvel_data()
+            get_marvel_data(public_key=public_key, private_key=private_key, target_dir=target_dir)
             break
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.ProxyError,
@@ -229,13 +229,3 @@ def main():
         tries += 1
 
     logging.info(F'Finnished after "{tries}" tries')
-
-
-if __name__ == '__main__':
-    PUBLIC_KEY = os.getenv('PUBLIC_KEY')
-    assert PUBLIC_KEY
-
-    PRIVATE_KEY = os.getenv('PRIVATE_KEY')
-    assert PRIVATE_KEY
-
-    main()

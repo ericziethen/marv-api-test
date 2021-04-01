@@ -51,25 +51,18 @@ jobs:
           echo "Command: 'ls -altR ${DATA_DIR}'"
           ls -altR ${DATA_DIR}
 
-
-
-
-
-      - name: Create Test File
+      - name: Get Data
         run: |
-          echo "Hello World" > "${DATA_DIR}/test_file.txt"
-
-
+          echo 'python .\scripts\get_marvel_data.py --public_key ***** --private_key ***** --dest_dir "${DATA_DIR}" --log_file_path "${DATA_DIR}/data.log"'
+          python .\scripts\get_marvel_data.py --public_key "${{ secrets.MARVEL_API_PUBLIC_KEY }}" --private_key "${{ secrets.MARVEL_API_PRIVATE_KEY }}" --dest_dir "${DATA_DIR}" --log_file_path "${DATA_DIR}/data.log"
 
       ### TODO - Use Secret to SPecify Password
       - name: Zip html artifacts
         run: |
-          zip -r "${WORK_DIR}/tmp.zip" "${DATA_DIR}"
-          zip --password Test_Password123 -r "${WORK_DIR}/data.zip" "${WORK_DIR}/tmp.zip"
-
-
-
-
+          pushd "${DATA_DIR}"
+          zip -r "${WORK_DIR}/tmp.zip" .
+          popd
+          zip --password "${{ secrets.ZIP_PW }}" -r "${WORK_DIR}/data.zip" "${WORK_DIR}/tmp.zip"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
