@@ -206,7 +206,7 @@ def get_marvel_data(*, public_key, private_key, target_dir):
         }
     )
 
-    # Gt the last view modified items in case we missed some changes while scraping
+    # Get the last view modified items in case we missed some changes while scraping
     comics = m.comics
     get_till_end(
         caller_func=comics.all,
