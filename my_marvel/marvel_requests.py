@@ -120,19 +120,11 @@ def get_marvel_data(*, public_key, private_key, target_dir):
 
     m = marvel.Marvel(public_key, private_key)
 
-    # Get Characters
-    characters = m.characters
-    get_till_end(
-        caller_func=characters.all,
-        result_limit=max_results,
-        start_offset=0,
-        target_dir=os.path.join(target_dir, 'CHARACTERS'),
-        base_file_name='CHARACTERS',
-        order_type='name',
-        sub_section_func_dict=None
-    )
 
-    # Get Events (with Characters and Creators)
+
+
+
+
     events = m.events
     get_till_end(
         caller_func=events.all,
@@ -141,61 +133,95 @@ def get_marvel_data(*, public_key, private_key, target_dir):
         target_dir=os.path.join(target_dir, 'EVENTS'),
         base_file_name='EVENTS',
         order_type='name',
-        sub_section_func_dict={
-            'CHARACTERS': events.characters,
-            'CREATORS': events.creators,
-        }
-    )
-
-    # Get Creators
-    creators = m.creators
-    get_till_end(
-        caller_func=creators.all,
-        result_limit=max_results,
-        start_offset=0,
-        target_dir=os.path.join(target_dir, 'CREATORS'),
-        base_file_name='CREATORS',
-        order_type='lastName,firstName',
         sub_section_func_dict=None
     )
 
-    # Get Comics (with Characters and Creators)
-    comics = m.comics
-    get_till_end(
-        caller_func=comics.all,
-        result_limit=max_results,
-        start_offset=0,
-        target_dir=os.path.join(target_dir, 'COMICS'),
-        base_file_name='COMICS',
-        order_type='title',
-        sub_section_func_dict=None
-    )
 
-    comics = m.comics
-    get_till_end(
-        caller_func=comics.all,
-        result_limit=max_results,
-        start_offset=0,
-        target_dir=os.path.join(target_dir, 'COMICS'),
-        base_file_name='COMICS',
-        order_type='title',
-        sub_section_func_dict={
-            'CHARACTERS': comics.characters,
-        }
-    )
 
-    comics = m.comics
-    get_till_end(
-        caller_func=comics.all,
-        result_limit=max_results,
-        start_offset=0,
-        target_dir=os.path.join(target_dir, 'COMICS'),
-        base_file_name='COMICS',
-        order_type='title',
-        sub_section_func_dict={
-            'CREATORS': comics.creators,
-        }
-    )
+
+
+
+
+
+
+
+
+    # # Get Characters
+    # characters = m.characters
+    # get_till_end(
+    #     caller_func=characters.all,
+    #     result_limit=max_results,
+    #     start_offset=0,
+    #     target_dir=os.path.join(target_dir, 'CHARACTERS'),
+    #     base_file_name='CHARACTERS',
+    #     order_type='name',
+    #     sub_section_func_dict=None
+    # )
+
+    # # Get Events (with Characters and Creators)
+    # events = m.events
+    # get_till_end(
+    #     caller_func=events.all,
+    #     result_limit=max_results,
+    #     start_offset=0,
+    #     target_dir=os.path.join(target_dir, 'EVENTS'),
+    #     base_file_name='EVENTS',
+    #     order_type='name',
+    #     sub_section_func_dict={
+    #         'CHARACTERS': events.characters,
+    #         'CREATORS': events.creators,
+    #     }
+    # )
+
+    # # Get Creators
+    # creators = m.creators
+    # get_till_end(
+    #     caller_func=creators.all,
+    #     result_limit=max_results,
+    #     start_offset=0,
+    #     target_dir=os.path.join(target_dir, 'CREATORS'),
+    #     base_file_name='CREATORS',
+    #     order_type='lastName,firstName',
+    #     sub_section_func_dict=None
+    # )
+
+    # # Get Comics (with Characters and Creators)
+    # comics = m.comics
+    # get_till_end(
+    #     caller_func=comics.all,
+    #     result_limit=max_results,
+    #     start_offset=0,
+    #     target_dir=os.path.join(target_dir, 'COMICS'),
+    #     base_file_name='COMICS',
+    #     order_type='title',
+    #     sub_section_func_dict=None
+    # )
+
+    # comics = m.comics
+    # get_till_end(
+    #     caller_func=comics.all,
+    #     result_limit=max_results,
+    #     start_offset=0,
+    #     target_dir=os.path.join(target_dir, 'COMICS'),
+    #     base_file_name='COMICS',
+    #     order_type='title',
+    #     sub_section_func_dict={
+    #         'CHARACTERS': comics.characters,
+    #     }
+    # )
+
+    # comics = m.comics
+    # get_till_end(
+    #     caller_func=comics.all,
+    #     result_limit=max_results,
+    #     start_offset=0,
+    #     target_dir=os.path.join(target_dir, 'COMICS'),
+    #     base_file_name='COMICS',
+    #     order_type='title',
+    #     sub_section_func_dict={
+    #         'CREATORS': comics.creators,
+    #     }
+    # )
 
 
 def get_data(*, log_path, public_key, private_key, target_dir):

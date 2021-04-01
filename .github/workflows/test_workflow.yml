@@ -62,7 +62,11 @@ jobs:
           pushd "${DATA_DIR}"
           zip -r "${WORK_DIR}/tmp.zip" .
           popd
-          zip --password "${{ secrets.ZIP_PW }}" -r "${WORK_DIR}/data.zip" "${WORK_DIR}/tmp.zip"
+
+          pushd "${WORK_DIR}"
+          zip --password "${{ secrets.ZIP_PW }}" -r "${WORK_DIR}/data.zip" "tmp.zip"
+          popd
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
