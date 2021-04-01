@@ -44,14 +44,16 @@ def find_file_with_prefix(prefix, search_dir):
 
 
 def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
-                 base_file_name, order_type, sub_section_func_dict=None, get_id=None):
+                 base_file_name, order_type, sub_section_func_dict=None, get_id=None,
+                 stop_after_count=None):
     logging.info(F'Processing "{base_file_name}"')
     next_offset=start_offset
 
+    result_count = 0
     while True:
         logging.info(F'Processing Offset "{next_offset}"')
         results = None
-        
+
         guess_file_name = F'{base_file_name}_{next_offset + 1}_'
 
         found_file_path = find_file_with_prefix(guess_file_name, target_dir)
@@ -70,6 +72,8 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
                 results = caller_func(limit=result_limit, offset=next_offset, orderBy=order_type)
 
         if results and results['data']['count'] > 0:
+            result_count += results['data']['count']
+
             # Store the Main Data
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
@@ -114,6 +118,11 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             break
 
         next_offset += result_limit
+
+        if stop_after_count:
+            if result_count >= stop_after_count:
+                logging.info(F'>>> FINISHED, Only asked for "{stop_after_count}" results, got "{result_count}"')
+                break
 
 def get_marvel_data(*, public_key, private_key, target_dir):
     max_results = 100
@@ -196,6 +205,22 @@ def get_marvel_data(*, public_key, private_key, target_dir):
             'CREATORS': comics.creators,
         }
     )
+
+    # Gt the last view modified items in case we missed some changes while scraping
+    comics = m.comics
+    get_till_end(
+        caller_func=comics.all,
+        result_limit=max_results,
+        start_offset=0,
+        target_dir=os.path.join(target_dir, 'COMICS'),
+        base_file_name='COMICS',
+        order_type='-modified',
+        sub_section_func_dict=None,
+        stop_after_count=300,
+    )
+
+
+
 
 
 def get_data(*, log_path, public_key, private_key, target_dir):
