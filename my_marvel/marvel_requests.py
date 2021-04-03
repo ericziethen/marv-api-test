@@ -117,7 +117,10 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             logging.info('>>> FINISHED, No More Results')
             break
 
+        # Next offset with some overlap to capture some movement
         next_offset += result_limit
+        if result_limit > 10:
+            next_offset -= 6
 
         if stop_after_count:
             if result_count >= stop_after_count:
@@ -212,15 +215,12 @@ def get_marvel_data(*, public_key, private_key, target_dir):
         caller_func=comics.all,
         result_limit=max_results,
         start_offset=0,
-        target_dir=os.path.join(target_dir, 'COMICS'),
+        target_dir=os.path.join(target_dir, 'COMICS', 'RecentlyModified'),
         base_file_name='COMICS',
         order_type='-modified',
         sub_section_func_dict=None,
         stop_after_count=300,
     )
-
-
-
 
 
 def get_data(*, log_path, public_key, private_key, target_dir):
@@ -253,3 +253,72 @@ def get_data(*, log_path, public_key, private_key, target_dir):
         tries += 1
 
     logging.info(F'Finnished after "{tries}" tries')
+
+    possible_sub_dirs = ['CHARACTERS', 'EVENTS', 'CREATORS', 'COMICS']
+    for sub_dir in possible_sub_dirs:
+        sub_dir_path = os.path.join(target_dir, sub_dir)
+        if os.path.exists(sub_dir_path):
+            duplicate_dir_path = os.path.join(target_dir, 'Duplicates', sub_dir)
+            export_duplicate_ids(sub_dir_path, duplicate_dir_path, F'{sub_dir}_DUPLICATE__')
+
+
+
+def export_duplicate_ids(search_dir, save_dir, file_prefix):
+    id_file_path_dict = {}
+
+    # Build a list of ids with file_path
+    for file_name in os.listdir(search_dir):
+        if not file_name.lower().endswith('.json'):
+            continue
+
+        file_path = os.path.join(search_dir, file_name)
+        with open(file_path, 'r', encoding='utf-8') as file_ptr:
+            results = json.load(file_ptr)
+
+            for entry in results['data']['results']:
+                entry_id = entry['id']
+                if entry_id not in id_file_path_dict:
+                    id_file_path_dict[entry_id] = []
+                id_file_path_dict[entry_id].append(file_path)
+
+    # Build up Lists of Duplicate ID's as well as files to process
+    duplicate_id_set = set()
+    files_to_check_set = set()
+
+    for myid, path_list in id_file_path_dict.items():
+        if len(path_list) > 1:
+            #print(F'Add "{myid}" ({type(myid)}) to ({type(duplicate_id_set)}) - "{duplicate_id_set}"')
+            duplicate_id_set.add(myid)
+            for mypath in path_list:
+                files_to_check_set.add(mypath)
+
+    # Create the duplicate_dict
+    duplicate_id_dict = {}
+    if duplicate_id_set and not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    for file_path in files_to_check_set:
+        with open(file_path, 'r', encoding='utf-8') as file_ptr:
+            results = json.load(file_ptr)
+            for entry in results['data']['results']:
+                entry_id = entry['id']
+                if entry_id in duplicate_id_set:
+                    if entry_id not in duplicate_id_dict:
+                        duplicate_id_dict[entry_id] = []
+                    duplicate_id_dict[entry_id].append(entry)
+
+    # Create the new files
+    for myid, data_list in duplicate_id_dict.items():
+        for count, entry in enumerate(data_list, start=1):
+            new_file_name = F'{file_prefix}__ID_{myid}_{count}.json'
+            new_file_path = os.path.join(save_dir, new_file_name)
+
+            with open(new_file_path, 'w', encoding='utf-8') as file_ptr:
+                json.dump(data_list, file_ptr, indent=4, sort_keys=False, ensure_ascii=False)
+
+
+if __name__ == '__main__':
+    export_duplicate_ids(
+        R'D:\temp\zipTest\data\tmp\COMICS',
+        R'D:\temp\zipTest\data\tmp\# Duplicates\COMICS_ID_DUPLICATES',
+        'COMICS_DUPLICATE__')
