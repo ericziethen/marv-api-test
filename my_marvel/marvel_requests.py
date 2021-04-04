@@ -10,6 +10,8 @@ import urllib3
 import marvel
 import requests
 
+from my_marvel import stats
+
 NAME_ORDER_MAPPING = {
     'events': 'name',
     'creators': 'lastName,firstName',
@@ -126,6 +128,34 @@ def get_till_end(*, caller_func, result_limit, start_offset, target_dir,
             if result_count >= stop_after_count:
                 logging.info(F'>>> FINISHED, Only asked for "{stop_after_count}" results, got "{result_count}"')
                 break
+
+
+def add_stats(base_dir):
+    dir_dict = {}
+
+    dir_dict['COMICS'] = [
+        os.path.join(base_dir, 'COMICS'),
+        os.path.join(base_dir, 'COMICS', 'RecentlyModified'),
+    ]
+
+    dir_dict['CHARACTERS'] = [
+        os.path.join(base_dir, 'CHARACTERS'),
+        os.path.join(base_dir, 'COMICS/CHARACTERS'),
+        os.path.join(base_dir, 'EVENTS/CHARACTERS'),
+    ]
+
+    dir_dict['CREATORS'] = [
+        os.path.join(base_dir, 'CREATORS'),
+        os.path.join(base_dir, 'COMICS/CREATORS'),
+        os.path.join(base_dir, 'EVENTS/CREATORS'),
+    ]
+
+    dir_dict['EVENTS'] = [
+        os.path.join(base_dir, 'EVENTS'),
+    ]
+
+    stats.get_stats(os.path.join(base_dir, 'stats.json'), dir_dict)
+
 
 def get_marvel_data(*, public_key, private_key, target_dir):
     max_results = 100
@@ -254,12 +284,16 @@ def get_data(*, log_path, public_key, private_key, target_dir):
 
     logging.info(F'Finnished after "{tries}" tries')
 
+    # Find Duplicate IDs
     possible_sub_dirs = ['CHARACTERS', 'EVENTS', 'CREATORS', 'COMICS']
     for sub_dir in possible_sub_dirs:
         sub_dir_path = os.path.join(target_dir, sub_dir)
         if os.path.exists(sub_dir_path):
             duplicate_dir_path = os.path.join(target_dir, 'Duplicates', sub_dir)
             export_duplicate_ids(sub_dir_path, duplicate_dir_path, F'{sub_dir}_DUPLICATE__')
+
+    # Get the stats
+    add_stats(target_dir)
 
 
 
